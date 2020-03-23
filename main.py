@@ -20,6 +20,7 @@ if ACCESS_KEY is None or SECRET_KEY is None or BUCKET_NAME is None:
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", type=str, help="The path to your log files")
 parser.add_argument("-e", "--extension", type=str, help="The file extension of all your logs")
+parser.add_argument("-k", "--keep", action="store_true", help="Dont delete files after upload")
 args = parser.parse_args()
 
 if not args.path:
@@ -74,6 +75,6 @@ for file in filesToUpload:
     with open(file, 'r+') as file_data:
         uploaded = upload_to_s3(ACCESS_KEY, SECRET_KEY, file_data, BUCKET_NAME, fileNames[index])
     index += 1
-    if uploaded is not False:
+    if uploaded is not False and not args.keep:
         os.remove(file)
         print("Removed " + file)
