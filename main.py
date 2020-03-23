@@ -1,6 +1,6 @@
 import ConfigParser
 import argparse
-import glob
+import fnmatch
 import os
 
 import boto
@@ -21,6 +21,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", type=str, help="The path to your log files")
 parser.add_argument("-e", "--extension", type=str, help="The file extension of all your logs")
 parser.add_argument("-k", "--keep", action="store_true", help="Dont delete files after upload")
+parser.add_argument("-m", "--mode", help="Dont delete files after upload")
+parser.add_argument("-o", "--port", help="Dont delete files after upload")
 args = parser.parse_args()
 
 if not args.path:
@@ -65,13 +67,16 @@ def upload_to_s3(aws_access_key_id, aws_secret_access_key, file, bucket, key, ca
     return False
 
 
-filesToUpload = glob.glob(pathToLogs + "*" + extension)
+matches = []
+for root, dirnames, filenames in os.walk(pathToLogs):
+    for filename in fnmatch.filter(filenames, '*'+extension):
+        matches.append(os.path.join(root, filename))
 fileNames = []
-for files in filesToUpload:
+for files in matches:
     pathList = files.split("/")
-    fileNames.append(pathList.pop())
+    fileNames.append(pathList[-1])
 index = 0
-for file in filesToUpload:
+for file in matches:
     with open(file, 'r+') as file_data:
         uploaded = upload_to_s3(ACCESS_KEY, SECRET_KEY, file_data, BUCKET_NAME, fileNames[index])
     index += 1
