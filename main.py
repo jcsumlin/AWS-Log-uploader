@@ -72,6 +72,11 @@ for files in filesToUpload:
     pathList = files.split("/")
     fileNames.append(pathList.pop())
 index = 0
-for files in filesToUpload:
-    uploaded = upload_to_aws(files, BUCKET_NAME, fileNames[index])
+for file in filesToUpload:
+    uploaded = upload_to_aws(file, BUCKET_NAME, fileNames[index])
     index += 1
+    if uploaded is not False:
+        os.remove(file)
+        print(f"Removed {file}")
+
+
