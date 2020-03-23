@@ -1,0 +1,4 @@
+[aws]
+aws_access_key_id=XXXXXX
+aws_secret_access_key=XXXX
+bucket_name=test-bucket
