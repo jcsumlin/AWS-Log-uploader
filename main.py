@@ -25,7 +25,7 @@ except getopt.GetoptError:
     print('\tVersion: 1.0')
     print('\tMaintainer: Chat Sumlin (chat.sumlin@banyanhills.com)')
     print('== Usage Instructions ==')
-    print('\tmain.py -p <pathToLogsFolder>')
+    print('\tmain.py -p <pathToLogsFolder> -e <extensions of your logs>')
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
@@ -33,7 +33,7 @@ for opt, arg in opts:
         print('\tVersion: 1.0')
         print('\tMaintainer: Chat Sumlin (chat.sumlin@banyanhills.com)')
         print('== Usage Instructions ==')
-        print('\tmain.py -p <pathToLogsFolder>')
+        print('\tmain.py -p <pathToLogsFolder> -e <extensions of your logs>')
         sys.exit()
     elif opt in ("-p", "--path"):
         pathToLogs = arg
