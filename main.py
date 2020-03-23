@@ -29,7 +29,11 @@ except getopt.GetoptError:
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-h':
-        print('main.py -p <pathToLogsFolder> -')
+        print('== Logs to s3 uploader ==')
+        print('\tVersion: 1.0')
+        print('\tMaintainer: Chat Sumlin (chat.sumlin@banyanhills.com)')
+        print('== Usage Instructions ==')
+        print('\tmain.py -p <pathToLogsFolder>')
         sys.exit()
     elif opt in ("-p", "--path"):
         pathToLogs = arg
