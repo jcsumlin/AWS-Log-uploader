@@ -64,6 +64,9 @@ def upload_to_aws(local_file, bucket, s3_file):
     except NoCredentialsError:
         print("Credentials not available")
         return False
+    except Exception as e:
+        print(f"{e}")
+        return False
 
 
 filesToUpload = glob.glob(f"{pathToLogs}*{extension}", recursive=True)
