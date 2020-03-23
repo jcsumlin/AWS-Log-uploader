@@ -8,8 +8,9 @@ else
     echo "Invalid version"
     exit
 fi
+pip3.6 install --upgrade pip
 while read requirement
- do pip install $requirement
+ do pip3.6 install $requirement
   done < requirements.txt
 echo "Requirements installed"
 echo "If you wish for this to run on a schedule please add an entry in your cron tab with the necessary flags --path and --extension"

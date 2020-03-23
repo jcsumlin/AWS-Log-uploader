@@ -1,15 +1,16 @@
+import configparser
+import getopt
 import glob
+import os
+import sys
 
 import boto3
 from botocore.exceptions import NoCredentialsError
-import configparser
-from datetime import datetime
-from os import listdir
-from os.path import isfile, join
-import sys, getopt
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+path_current_directory = os.path.dirname(__file__)
+config.read(os.path.join(path_current_directory, 'config.ini'))
+
 
 ACCESS_KEY = config['aws']['aws_access_key_id']
 SECRET_KEY = config['aws']['aws_secret_access_key']
