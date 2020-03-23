@@ -79,6 +79,7 @@ index = 0
 for file in matches:
     with open(file, 'r+') as file_data:
         uploaded = upload_to_s3(ACCESS_KEY, SECRET_KEY, file_data, BUCKET_NAME, fileNames[index])
+        print("File " + fileNames[index] + " was uploaded")
     index += 1
     if uploaded is not False and not args.keep:
         os.remove(file)
