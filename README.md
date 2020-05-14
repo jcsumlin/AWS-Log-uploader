@@ -29,4 +29,5 @@ Upload logs to aws S3
 5) When running the main.py file you can specify two flags
     -  --path : the path to where all your logs are stored (defaults to "./")
     - --extension : the file extension of your logs that this should look for (defaults to ".log")
+    - --keep : By default the script removes the filesthat it successfully uploads but you can prevent that by passing this flag.
 
