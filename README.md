@@ -3,7 +3,7 @@
 Upload logs to aws S3
 
 
-##How to use:
+## How to use:
 1) First create and IAM programmatic user within AWS with this policy
 ```json
 {
