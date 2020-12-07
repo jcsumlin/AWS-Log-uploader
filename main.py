@@ -13,9 +13,10 @@ config.readfp(open(os.path.join(path_current_directory, 'config.ini')))
 ACCESS_KEY = config.get('aws', 'aws_access_key_id')
 SECRET_KEY = config.get('aws', 'aws_secret_access_key')
 BUCKET_NAME = config.get('aws', 'bucket_name')
+REGION_ENDPOINT = config.get('aws', 'aws_s3_host')
 if ACCESS_KEY is None or SECRET_KEY is None or BUCKET_NAME is None:
     print("One or more of the required config variables is missing. Please ensure config.ini is completely filled out!")
-
+    exit(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--path", type=str, help="The path to your log files")
@@ -51,7 +52,7 @@ def upload_to_s3(aws_access_key_id, aws_secret_access_key, file, bucket, key, ca
         file.seek(0, os.SEEK_END)
         size = file.tell()
 
-    conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key)
+    conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key, host=REGION_ENDPOINT)
     bucket = conn.get_bucket(bucket, validate=False)
     k = Key(bucket)
     k.key = key
