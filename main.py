@@ -1,14 +1,17 @@
-import ConfigParser
+import configparser
 import argparse
 import fnmatch
 import os
+from botocore.exceptions import ClientError
 
-import boto
-from boto.s3.key import Key
 
-config = ConfigParser.ConfigParser()
+import boto3
+
+from ProgressPercentage import ProgressPercentage
+
+config = configparser.ConfigParser()
 path_current_directory = os.path.dirname(__file__)
-config.readfp(open(os.path.join(path_current_directory, 'config.ini')))
+config.read("config.ini")
 
 ACCESS_KEY = config.get('aws', 'aws_access_key_id')
 SECRET_KEY = config.get('aws', 'aws_secret_access_key')
@@ -41,36 +44,21 @@ else:
     print("Extension set to: " + extension)
 
 
+def upload_file(file_name, bucket, object_name=None):
+    if object_name is None:
+        object_name = file_name
 
-def upload_to_s3(aws_access_key_id, aws_secret_access_key, file, bucket, key, callback=None, md5=None,
-                 reduced_redundancy=False, content_type=None):
+    s3_client = boto3.client('s3')
     try:
-        size = os.fstat(file.fileno()).st_size
-    except:
-        # Not all file objects implement fileno(),
-        # so we fall back on this
-        file.seek(0, os.SEEK_END)
-        size = file.tell()
-
-    conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key, host=REGION_ENDPOINT)
-    bucket = conn.get_bucket(bucket, validate=False)
-    k = Key(bucket)
-    k.key = key
-    if content_type:
-        k.set_metadata('Content-Type', content_type)
-    sent = k.set_contents_from_file(file, cb=callback, md5=md5, reduced_redundancy=reduced_redundancy, rewind=True)
-
-    # Rewind for later use
-    file.seek(0)
-
-    if sent == size:
-        return True
-    return False
-
+        response = s3_client.upload_file(file_name, bucket, object_name, Callback=ProgressPercentage(file_name))
+    except ClientError as e:
+        print(e)
+        return False
+    return True
 
 matches = []
 for root, dirnames, filenames in os.walk(pathToLogs):
-    for filename in fnmatch.filter(filenames, '*'+extension):
+    for filename in fnmatch.filter(filenames, '*' + extension):
         matches.append(os.path.join(root, filename))
 fileNames = []
 for files in matches:
@@ -78,9 +66,9 @@ for files in matches:
     fileNames.append(pathList[-1])
 index = 0
 for file in matches:
-    with open(file, 'r+') as file_data:
-        uploaded = upload_to_s3(ACCESS_KEY, SECRET_KEY, file_data, BUCKET_NAME, fileNames[index])
-        print("File " + fileNames[index] + " was uploaded")
+    print(f"Uploading {file} to {BUCKET_NAME}")
+    uploaded = upload_file(file, BUCKET_NAME, fileNames[index])
+    print("File " + fileNames[index] + " was uploaded")
     index += 1
     if uploaded is not False and not args.keep:
         os.remove(file)
