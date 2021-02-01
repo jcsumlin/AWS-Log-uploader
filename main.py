@@ -1,85 +1,79 @@
 import configparser
-import getopt
-import glob
+import argparse
+import fnmatch
 import os
-import sys
+from botocore.exceptions import ClientError
+
 
 import boto3
-from botocore.exceptions import NoCredentialsError
+
+from ProgressPercentage import ProgressPercentage
 
 config = configparser.ConfigParser()
 path_current_directory = os.path.dirname(__file__)
-config.read(os.path.join(path_current_directory, 'config.ini'))
+config.read("./config.ini")
 
-
-ACCESS_KEY = config['aws']['aws_access_key_id']
-SECRET_KEY = config['aws']['aws_secret_access_key']
-BUCKET_NAME = config['aws']['bucket_name']
+ACCESS_KEY = config.get('aws', 'aws_access_key_id')
+SECRET_KEY = config.get('aws', 'aws_secret_access_key')
+BUCKET_NAME = config.get('aws', 'bucket_name')
+REGION_ENDPOINT = config.get('aws', 'aws_s3_host')
 if ACCESS_KEY is None or SECRET_KEY is None or BUCKET_NAME is None:
     print("One or more of the required config variables is missing. Please ensure config.ini is completely filled out!")
+    exit(0)
 
-argv = sys.argv[1:]
-try:
-    opts, args = getopt.getopt(argv, "hp:e:", ["path=", "extension="])
-except getopt.GetoptError:
-    print('== Logs to s3 uploader ==')
-    print('\tVersion: 1.0')
-    print('\tMaintainer: Chat Sumlin (chat.sumlin@banyanhills.com)')
-    print('== Usage Instructions ==')
-    print('\tmain.py -p <pathToLogsFolder> -e <extensions of your logs>')
-    sys.exit(2)
-for opt, arg in opts:
-    if opt == '-h':
-        print('== Logs to s3 uploader ==')
-        print('\tVersion: 1.0')
-        print('\tMaintainer: Chat Sumlin (chat.sumlin@banyanhills.com)')
-        print('== Usage Instructions ==')
-        print('\tmain.py -p <pathToLogsFolder> -e <extensions of your logs>')
-        sys.exit()
-    elif opt in ("-p", "--path"):
-        pathToLogs = arg
-        print(f"Path set to: {pathToLogs}")
-    elif opt in ("-e", "--extension"):
-        extension = arg
-        print(f"Extension set to: {extension}")
-if 'extension' not in locals():
-    extension = ".log"
-    print(f"Extension defaulted to: {extension}")
-if 'pathToLogs' not in locals():
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--path", type=str, help="The path to your log files. DEFAULT: current working directory")
+parser.add_argument("-e", "--extension", type=str, help="The file extension of all your logs. DEFAULT: .log")
+parser.add_argument("-b", "--bucket", type=str, help="The S3 Bucket that you want to upload to Can aloe be set in the config.ini file")
+parser.add_argument("-k", "--keep", action="store_true", help="Don't delete files after upload")
+args = parser.parse_args()
+
+if not args.path:
     pathToLogs = "./"
-    print(f"Extension defaulted to: {pathToLogs}")
+    print("Extension defaulted to:" + pathToLogs)
+else:
+    pathToLogs = args.path
+    print("Path set to: " + pathToLogs)
+
+if not args.extension:
+    extension = ".log"
+    print("Extension defaulted to: " + extension)
+else:
+    extension = args.extension
+    print("Extension set to: " + extension)
+if not args.bucket:
+    BUCKET_NAME = config.get('aws', 'bucket_name')
+else:
+    BUCKET_NAME = args.bucket
+print("Bucket set to: " + BUCKET_NAME)
 
 
-def upload_to_aws(local_file, bucket, s3_file):
-    s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,
-                      aws_secret_access_key=SECRET_KEY)
+def upload_file(file_name, bucket, object_name=None):
+    if object_name is None:
+        object_name = file_name
 
+    s3_client = boto3.client('s3')
     try:
-        s3.upload_file(local_file, bucket, s3_file)
-        print(f"{local_file} uploaded to {bucket} SUCCESSFULLY")
-        return True
-    except FileNotFoundError:
-        print("The file was not found")
+        response = s3_client.upload_file(file_name, bucket, object_name, Callback=ProgressPercentage(file_name))
+    except ClientError as e:
+        print(e)
         return False
-    except NoCredentialsError:
-        print("Credentials not available")
-        return False
-    except Exception as e:
-        print(f"{e}")
-        return False
+    return True
 
-
-filesToUpload = glob.glob(f"{pathToLogs}*{extension}", recursive=True)
+matches = []
+for root, dirnames, filenames in os.walk(pathToLogs):
+    for filename in fnmatch.filter(filenames, '*' + extension):
+        matches.append(os.path.join(root, filename))
 fileNames = []
-for files in filesToUpload:
+for files in matches:
     pathList = files.split("/")
-    fileNames.append(pathList.pop())
+    fileNames.append(pathList[-1])
 index = 0
-for file in filesToUpload:
-    uploaded = upload_to_aws(file, BUCKET_NAME, fileNames[index])
+for file in matches:
+    print(f"Uploading {file} to {BUCKET_NAME}")
+    uploaded = upload_file(file, BUCKET_NAME, fileNames[index])
+    print("File " + fileNames[index] + " was uploaded")
     index += 1
-    if uploaded is not False:
+    if uploaded is not False and not args.keep:
         os.remove(file)
-        print(f"Removed {file}")
-
-
+        print("Removed " + file)
