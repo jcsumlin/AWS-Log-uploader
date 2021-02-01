@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 parsedVersion=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
 echo "Python Version (2.7.x Required): " $parsedVersion
-if [[ "$parsedVersion" == "2.7"*  ]]
+if [[ "$parsedVersion" == "3.8"*  ]]
 then
     echo "Valid version"
 else

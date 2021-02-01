@@ -22,11 +22,10 @@ if ACCESS_KEY is None or SECRET_KEY is None or BUCKET_NAME is None:
     exit(0)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--path", type=str, help="The path to your log files")
-parser.add_argument("-e", "--extension", type=str, help="The file extension of all your logs")
-parser.add_argument("-k", "--keep", action="store_true", help="Dont delete files after upload")
-parser.add_argument("-m", "--mode", help="Dont delete files after upload")
-parser.add_argument("-o", "--port", help="Dont delete files after upload")
+parser.add_argument("-p", "--path", type=str, help="The path to your log files. DEFAULT: current working directory")
+parser.add_argument("-e", "--extension", type=str, help="The file extension of all your logs. DEFAULT: .log")
+parser.add_argument("-b", "--bucket", type=str, help="The S3 Bucket that you want to upload to Can aloe be set in the config.ini file")
+parser.add_argument("-k", "--keep", action="store_true", help="Don't delete files after upload")
 args = parser.parse_args()
 
 if not args.path:
@@ -42,6 +41,11 @@ if not args.extension:
 else:
     extension = args.extension
     print("Extension set to: " + extension)
+if not args.bucket:
+    BUCKET_NAME = config.get('aws', 'bucket_name')
+else:
+    BUCKET_NAME = args.bucket
+print("Bucket set to: " + BUCKET_NAME)
 
 
 def upload_file(file_name, bucket, object_name=None):

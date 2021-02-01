@@ -1,5 +1,2 @@
 [aws]
-aws_access_key_id=XXXXXX
-aws_secret_access_key=XXXX
-bucket_name=test-bucket'a
-aws_s3_host=protocol://service-code.region-code.amazonaws.com
+bucket_name=test-bucket
