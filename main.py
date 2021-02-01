@@ -11,7 +11,7 @@ from ProgressPercentage import ProgressPercentage
 
 config = configparser.ConfigParser()
 path_current_directory = os.path.dirname(__file__)
-config.read("config.ini")
+config.read("./config.ini")
 
 ACCESS_KEY = config.get('aws', 'aws_access_key_id')
 SECRET_KEY = config.get('aws', 'aws_secret_access_key')
